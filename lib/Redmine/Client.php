@@ -8,25 +8,25 @@ namespace Redmine;
  * @author Kevin Saliou <kevin at saliou dot name>
  * Website: http://github.com/kbsali/php-redmine-api
  *
- * @property Api\Attachment $attachment
- * @property Api\Group $group
- * @property Api\CustomField $custom_fields
- * @property Api\Issue $issue
- * @property Api\IssueCategory $issue_category
- * @property Api\IssuePriority $issue_priority
- * @property Api\IssueRelation $issue_relation
- * @property Api\IssueStatus $issue_status
- * @property Api\Membership $membership
- * @property Api\News $news
- * @property Api\Project $project
- * @property Api\Query $query
- * @property Api\Role $role
- * @property Api\TimeEntry $time_entry
+ * @property Api\Attachment        $attachment
+ * @property Api\Group             $group
+ * @property Api\CustomField       $custom_fields
+ * @property Api\Issue             $issue
+ * @property Api\IssueCategory     $issue_category
+ * @property Api\IssuePriority     $issue_priority
+ * @property Api\IssueRelation     $issue_relation
+ * @property Api\IssueStatus       $issue_status
+ * @property Api\Membership        $membership
+ * @property Api\News              $news
+ * @property Api\Project           $project
+ * @property Api\Query             $query
+ * @property Api\Role              $role
+ * @property Api\TimeEntry         $time_entry
  * @property Api\TimeEntryActivity $time_entry_activity
- * @property Api\Tracker $tracker
- * @property Api\User $user
- * @property Api\Version $version
- * @property Api\Wiki $wiki
+ * @property Api\Tracker           $tracker
+ * @property Api\User              $user
+ * @property Api\Version           $version
+ * @property Api\Wiki              $wiki
  */
 class Client
 {
@@ -40,10 +40,10 @@ class Client
     /**
      * @var array
      */
-    private static $defaultPorts = array(
-        'http' => 80,
+    private static $defaultPorts = [
+        'http'  => 80,
         'https' => 443,
-    );
+    ];
 
     /**
      * @var int
@@ -85,10 +85,16 @@ class Client
      */
     private $useHttpAuth = true;
 
+    /** @var string|null */
+    private $httpAuthUser = null;
+
+    /** @var string|null */
+    private $httpAuthPassword = null;
+
     /**
      * @var array APIs
      */
-    private $apis = array();
+    private $apis = [];
 
     /**
      * @var string|null username for impersonating API calls
@@ -103,39 +109,39 @@ class Client
     /**
      * @var array cURL options
      */
-    private $curlOptions = array();
+    private $curlOptions = [];
 
     /**
      * Error strings if json is invalid.
      */
-    private static $jsonErrors = array(
-        JSON_ERROR_NONE => 'No error has occurred',
-        JSON_ERROR_DEPTH => 'The maximum stack depth has been exceeded',
+    private static $jsonErrors = [
+        JSON_ERROR_NONE      => 'No error has occurred',
+        JSON_ERROR_DEPTH     => 'The maximum stack depth has been exceeded',
         JSON_ERROR_CTRL_CHAR => 'Control character error, possibly incorrectly encoded',
-        JSON_ERROR_SYNTAX => 'Syntax error',
-    );
+        JSON_ERROR_SYNTAX    => 'Syntax error',
+    ];
 
-    private $classes = array(
-        'attachment' => 'Attachment',
-        'group' => 'Group',
-        'custom_fields' => 'CustomField',
-        'issue' => 'Issue',
-        'issue_category' => 'IssueCategory',
-        'issue_priority' => 'IssuePriority',
-        'issue_relation' => 'IssueRelation',
-        'issue_status' => 'IssueStatus',
-        'membership' => 'Membership',
-        'news' => 'News',
-        'project' => 'Project',
-        'query' => 'Query',
-        'role' => 'Role',
-        'time_entry' => 'TimeEntry',
+    private        $classes    = [
+        'attachment'          => 'Attachment',
+        'group'               => 'Group',
+        'custom_fields'       => 'CustomField',
+        'issue'               => 'Issue',
+        'issue_category'      => 'IssueCategory',
+        'issue_priority'      => 'IssuePriority',
+        'issue_relation'      => 'IssueRelation',
+        'issue_status'        => 'IssueStatus',
+        'membership'          => 'Membership',
+        'news'                => 'News',
+        'project'             => 'Project',
+        'query'               => 'Query',
+        'role'                => 'Role',
+        'time_entry'          => 'TimeEntry',
         'time_entry_activity' => 'TimeEntryActivity',
-        'tracker' => 'Tracker',
-        'user' => 'User',
-        'version' => 'Version',
-        'wiki' => 'Wiki',
-    );
+        'tracker'             => 'Tracker',
+        'user'                => 'User',
+        'version'             => 'Version',
+        'wiki'                => 'Wiki',
+    ];
 
     /**
      * Usage: apikeyOrUsername can be auth key or username.
@@ -396,7 +402,7 @@ class Client
     public function setPort($port = null)
     {
         if (null !== $port) {
-            $this->port = (int) $port;
+            $this->port = (int)$port;
         }
 
         return $this;
@@ -409,7 +415,7 @@ class Client
      */
     public function getResponseCode()
     {
-        return (int) $this->responseCode;
+        return (int)$this->responseCode;
     }
 
     /**
@@ -497,7 +503,7 @@ class Client
     public function prepareRequest($path, $method = 'GET', $data = '')
     {
         $this->responseCode = null;
-        $this->curlOptions = array();
+        $this->curlOptions = [];
         $curl = curl_init();
 
         // General cURL options
@@ -506,28 +512,42 @@ class Client
         $this->setCurlOption(CURLOPT_RETURNTRANSFER, 1);
 
         // HTTP Basic Authentication
-        if ($this->apikeyOrUsername && $this->useHttpAuth) {
-            if (null === $this->pass) {
-                $this->setCurlOption(CURLOPT_USERPWD, $this->apikeyOrUsername.':'.rand(100000, 199999));
+        if ($this->apikeyOrUsername) {
+            if ($this->useHttpAuth) {
+                if (null === $this->pass) {
+                    $this->setCurlOption(CURLOPT_USERPWD, $this->apikeyOrUsername.':'.rand(100000, 199999));
+                } else {
+                    $this->setCurlOption(CURLOPT_USERPWD, $this->apikeyOrUsername.':'.$this->pass);
+                }
+                $this->setCurlOption(CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+                // Host and request options
+                $this->setCurlOption(CURLOPT_URL, $this->url.$path);
             } else {
-                $this->setCurlOption(CURLOPT_USERPWD, $this->apikeyOrUsername.':'.$this->pass);
+                if ($this->getHttpAuthUser() && $this->getHttpAuthPassword()) {
+                    $this->setCurlOption(CURLOPT_USERPWD, $this->getHttpAuthUser().':'.$this->getHttpAuthPassword());
+                    $this->setCurlOption(CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+                }
+                // Host and request options
+                if (strpos('?', $path) !== false) {
+                    $pathWithKey = $path.'&key='.$this->apikeyOrUsername;
+                } else {
+                    $pathWithKey = $path.'?key='.$this->apikeyOrUsername;
+                }
+                $this->setCurlOption(CURLOPT_URL, $this->url.$pathWithKey);
             }
-            $this->setCurlOption(CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
         }
 
-        // Host and request options
-        $this->setCurlOption(CURLOPT_URL, $this->url.$path);
         $this->setCurlOption(CURLOPT_PORT, $this->getPort());
         if (80 !== $this->getPort()) {
-            $this->setCurlOption(CURLOPT_SSL_VERIFYPEER, (int) $this->checkSslCertificate);
-            $this->setCurlOption(CURLOPT_SSL_VERIFYHOST, (int) $this->checkSslHost);
+            $this->setCurlOption(CURLOPT_SSL_VERIFYPEER, (int)$this->checkSslCertificate);
+            $this->setCurlOption(CURLOPT_SSL_VERIFYHOST, (int)$this->checkSslHost);
             $this->setCurlOption(CURLOPT_SSLVERSION, $this->sslVersion);
         }
 
         // Additional request headers
-        $httpHeader = array(
+        $httpHeader = [
             'Expect: ',
-        );
+        ];
 
         // Content type headers
         $tmp = parse_url($this->url.$path);
@@ -627,5 +647,33 @@ class Client
         curl_close($curl);
 
         return $this->processCurlResponse($response, $contentType);
+    }
+
+    /**
+     * @return null|string
+     */
+    public function getHttpAuthUser()
+    {
+        return $this->httpAuthUser;
+    }
+
+    /**
+     * @return null|string
+     */
+    public function getHttpAuthPassword()
+    {
+        return $this->httpAuthPassword;
+    }
+
+    /**
+     * @param $user
+     * @param $password
+     *
+     * @return null|string
+     */
+    public function setCustomHttpAuth($user, $password)
+    {
+        $this->httpAuthUser = $user;
+        $this->httpAuthPassword = $password;
     }
 }
