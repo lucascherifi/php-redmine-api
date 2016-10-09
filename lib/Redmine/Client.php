@@ -527,7 +527,7 @@ class Client
                     $this->setCurlOption(CURLOPT_USERPWD, $this->getHttpAuthUser().':'.$this->getHttpAuthPassword());
                     $this->setCurlOption(CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
                 }
-                // Host and request options
+//                // Host and request options
 //                if (strpos('?', $path) !== false) {
 //                    $pathWithKey = $path.'&key='.$this->apikeyOrUsername;
 //                } else {
@@ -589,7 +589,7 @@ class Client
             default: // GET
                 break;
         }
-        print_r($this->getCurlOptions());
+
         // Set all cURL options to the current cURL resource
         curl_setopt_array($curl, $this->getCurlOptions());
 
