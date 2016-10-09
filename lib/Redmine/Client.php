@@ -528,12 +528,12 @@ class Client
                     $this->setCurlOption(CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
                 }
                 // Host and request options
-                if (strpos('?', $path) !== false) {
-                    $pathWithKey = $path.'&key='.$this->apikeyOrUsername;
-                } else {
-                    $pathWithKey = $path.'?key='.$this->apikeyOrUsername;
-                }
-                $this->setCurlOption(CURLOPT_URL, $this->url.$pathWithKey);
+//                if (strpos('?', $path) !== false) {
+//                    $pathWithKey = $path.'&key='.$this->apikeyOrUsername;
+//                } else {
+//                    $pathWithKey = $path.'?key='.$this->apikeyOrUsername;
+//                }
+                $this->setCurlOption(CURLOPT_URL, $this->url.$path);
             }
         }
 
@@ -589,7 +589,7 @@ class Client
             default: // GET
                 break;
         }
-
+        print_r($this->getCurlOptions());
         // Set all cURL options to the current cURL resource
         curl_setopt_array($curl, $this->getCurlOptions());
 
